@@ -1,4 +1,4 @@
-# Mi Gym v1.4 — cómo instalarla
+# Mi Gym v1.5 — cómo instalarla
 
 ## Probar en la PC
 Abre `index.html` con doble clic (Chrome o Edge). Se ve la app, pero así no guarda datos de forma fiable ni se instala. Para usarla de verdad hay que publicarla (paso siguiente).
