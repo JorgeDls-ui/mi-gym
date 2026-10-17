@@ -1,5 +1,5 @@
 // Mi Gym — service worker: guarda la app para usarla sin internet
-const CACHE = 'migym-v1.3';
+const CACHE = 'migym-v1.4';
 const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

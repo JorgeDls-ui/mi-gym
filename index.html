@@ -217,8 +217,8 @@ label.f{display:block;font-size:13px;color:var(--mu);margin:10px 0 5px}
 
 <script>
 'use strict';
-/* ================= Mi Gym v1.3 — registro de entrenamiento offline ================= */
-const APP_VER='1.3';
+/* ================= Mi Gym v1.4 — registro de entrenamiento offline ================= */
+const APP_VER='1.4';
 const KEY='migym.v1';
 const LB=0.45359237;
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -265,7 +265,7 @@ function defaults(){
 /* ---------- Estado y guardado ---------- */
 function fresh(){return {v:1,templates:defaults(),sessions:[],activeId:null,units:{},choice:{},
   body:[],exNotes:{},lastBackup:null,
-  settings:{defUnit:'kg',restHeavy:150,restLight:90,sound:true,loud:false,rir:false,theme:'auto'}}}
+  settings:{defUnit:'kg',timer:false,restHeavy:150,restLight:90,sound:true,loud:false,rir:false,theme:'auto'}}}
 function load(){
   let d=null;try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
   if(!d||!Array.isArray(d.templates))return fresh();
@@ -439,7 +439,7 @@ function vSession(){
   const s=active();if(!s){S.activeId=null;return vHoy()}
   setTitle(s.tplName,'');s.watch=s.watch||{kcal:'',hr:'',hrmax:''};
   let h='';
-  if(IOS&&!S.lockTipSeen)h+=`<div class="card note"><div class="row"><div class="grow sm">🔆 <b>Deja la pantalla encendida.</b> Si bloqueas el iPhone o cambias de app, el aviso de descanso no suena hasta que vuelvas.</div>
+  if(IOS&&S.settings.timer&&!S.lockTipSeen)h+=`<div class="card note"><div class="row"><div class="grow sm">🔆 <b>Deja la pantalla encendida.</b> Si bloqueas el iPhone o cambias de app, el aviso de descanso no suena hasta que vuelvas.</div>
     <button class="btn sm" data-act="locktip">Entendido</button></div></div>`;
   if(s.type==='descanso'){
     h+=`<div class="card"><div class="mu sm">Elige lo que hiciste</div><div class="chips">`+
@@ -465,7 +465,7 @@ function vItem(s,it,i){
   const all=it.sets.length&&it.sets.every(x=>x.d);
   const tm=it.mode==='tiempo',rir=S.settings.rir&&!tm,note=S.exNotes[key];
   let h=`<div class="ex ${all?'okk':''} ${it.skipped?'skip':''}" id="ex${i}"><div class="hd"><div class="n">${all?'✓':i+1}</div>
-    <div class="grow"><div class="nm">${esc(key)}</div><div class="tg">${it.target} × ${it.min}–${it.max}${tm?' s':' reps'}${it.rest?' · descanso '+it.rest+' s':''}${it.extra?' · extra':''}</div></div>
+    <div class="grow"><div class="nm">${esc(key)}</div><div class="tg">${it.target} × ${it.min}–${it.max}${tm?' s':' reps'}${it.rest&&S.settings.timer?' · descanso '+it.rest+' s':''}${it.extra?' · extra':''}</div></div>
     ${tm?'':`<button class="ubtn" data-act="unit" data-i="${i}" title="Cambiar unidad"><b>${it.u}</b></button>`}</div>`;
   if(it.skipped)return h+`<div class="exf"><button class="btn sm" data-act="skip" data-i="${i}">Volver a incluir</button></div></div>`;
   h+=`<button class="exnote ${note?'':'vac'}" data-act="note" data-i="${i}">${note?'📝 '+esc(note):'＋ Nota del ejercicio (asiento, agarre…)'}</button>`;
@@ -637,12 +637,14 @@ function vAjustes(){
   h+=`<h2>Preferencias</h2><div class="card">
     <label class="f" style="margin-top:0">Unidad para ejercicios nuevos</label><div class="seg"><button class="${st.defUnit==='kg'?'on':''}" data-act="defu" data-u="kg">kg</button><button class="${st.defUnit==='lb'?'on':''}" data-act="defu" data-u="lb">lb</button></div>
     <div class="mu xs" style="margin-top:6px">Cada ejercicio recuerda su propia unidad; tócala dentro del entrenamiento para cambiarla.</div>
-    <div class="row" style="margin-top:6px"><div class="grow"><label class="f">Descanso pesado (≤ 8 reps)</label><input inputmode="numeric" data-s="restHeavy" value="${st.restHeavy}"></div>
+    <label class="row" style="margin-top:14px"><input type="checkbox" data-s="timer" ${st.timer?'checked':''} style="width:22px;height:22px"><span class="grow">Temporizador de descanso</span></label>
+    <div class="mu xs" style="margin:4px 0 0 32px">Arranca solo al marcar una serie. Apágalo si usas el cronómetro del teléfono o del reloj.</div>
+    ${st.timer?`<div class="row" style="margin-top:6px"><div class="grow"><label class="f">Descanso pesado (≤ 8 reps)</label><input inputmode="numeric" data-s="restHeavy" value="${st.restHeavy}"></div>
     <div class="grow"><label class="f">Descanso ligero</label><input inputmode="numeric" data-s="restLight" value="${st.restLight}"></div></div>
-    <div class="mu xs" style="margin-top:6px">En segundos. El temporizador arranca al marcar una serie.</div>
+    <div class="mu xs" style="margin-top:6px">En segundos.</div>
     <label class="row" style="margin-top:14px"><input type="checkbox" data-s="sound" ${st.sound?'checked':''} style="width:22px;height:22px"><span class="grow">Sonido al terminar el descanso</span></label>
     <label class="row" style="margin-top:12px"><input type="checkbox" data-s="loud" ${st.loud?'checked':''} style="width:22px;height:22px"><span class="grow">Sonar aunque el iPhone esté en silencio</span></label>
-    <div class="mu xs" style="margin:4px 0 0 32px">Pausa tu música (Spotify, Apple Music) cada vez que suena. Además del sonido, la pantalla destella al terminar el descanso.</div>
+    <div class="mu xs" style="margin:4px 0 0 32px">Pausa tu música (Spotify, Apple Music) cada vez que suena. Además del sonido, la pantalla destella al terminar el descanso.</div>`:''}
     <label class="row" style="margin-top:12px"><input type="checkbox" data-s="rir" ${st.rir?'checked':''} style="width:22px;height:22px"><span class="grow">Registrar RIR (reps en reserva)</span></label>
     <div class="mu xs" style="margin:4px 0 0 32px">Cuántas reps más podías hacer en cada serie (0 = al fallo). Hace más precisas las sugerencias de peso.</div></div>`;
   h+=`<h2>Respaldo y sincronizar teléfono ↔ PC</h2><div class="card">
@@ -669,12 +671,12 @@ function vEdit(){
   if(t.type==='descanso'){
     h+=`<h2>Actividades</h2><div class="card"><div class="mu xs" style="margin-bottom:6px">Una por línea: nombre — tiempo</div><textarea data-tf="acts" rows="4">${esc(t.acts.map(a=>a.n+' — '+a.r).join('\n'))}</textarea></div>`;
   }else{
-    h+=`<h2>Ejercicios</h2><div class="mu xs" style="margin:-4px 2px 8px">Para variantes escribe con barra: <b style="color:var(--tx)">Fondos | Press cerrado</b>. Descanso vacío (Auto) usa el de Ajustes.</div>`;
+    h+=`<h2>Ejercicios</h2><div class="mu xs" style="margin:-4px 2px 8px">Para variantes escribe con barra: <b style="color:var(--tx)">Fondos | Press cerrado</b>.${S.settings.timer?' Descanso vacío (Auto) usa el de Ajustes.':''}</div>`;
     t.ex.forEach((e,i)=>{h+=`<div class="edx"><input data-ef="text" data-e="${i}" value="${esc(e.options.length?e.options.join(' | '):e.label)}" placeholder="Nombre del ejercicio">
       <div class="g"><div><div class="mu xs">Series</div><input inputmode="numeric" data-ef="sets" data-e="${i}" value="${e.sets}"></div>
       <div><div class="mu xs">${e.mode==='tiempo'?'Seg. mín':'Reps mín'}</div><input inputmode="numeric" data-ef="min" data-e="${i}" value="${e.min}"></div>
       <div><div class="mu xs">${e.mode==='tiempo'?'Seg. máx':'Reps máx'}</div><input inputmode="numeric" data-ef="max" data-e="${i}" value="${e.max}"></div></div>
-      <div class="g"><div><div class="mu xs">Descanso (s)</div><input inputmode="numeric" data-ef="rest" data-e="${i}" value="${e.rest||''}" placeholder="Auto"></div>
+      <div class="g" ${S.settings.timer?'':'style="grid-template-columns:1fr 1fr"'}>${S.settings.timer?`<div><div class="mu xs">Descanso (s)</div><input inputmode="numeric" data-ef="rest" data-e="${i}" value="${e.rest||''}" placeholder="Auto"></div>`:''}
       <div><div class="mu xs">Tipo</div><select data-ef="mode" data-e="${i}"><option value="reps" ${e.mode!=='tiempo'?'selected':''}>Reps</option><option value="tiempo" ${e.mode==='tiempo'?'selected':''}>Tiempo</option></select></div>
       <div><div class="mu xs">Grupo</div><select data-ef="group" data-e="${i}"><option value="sup" ${e.group==='sup'?'selected':''}>Superior</option><option value="inf" ${e.group==='inf'?'selected':''}>Pierna</option><option value="core" ${e.group==='core'?'selected':''}>Core</option></select></div></div>
       <div class="tools"><button class="btn sm" data-act="emv" data-e="${i}" data-d="-1">↑</button><button class="btn sm" data-act="emv" data-e="${i}" data-d="1">↓</button><button class="btn sm bad" data-act="edel" data-e="${i}">Quitar</button></div></div>`});
@@ -698,7 +700,7 @@ const TKEY='migym.timer';
 const T={end:0,total:0,done:false};let AC=null;
 // el descanso sobrevive si iOS recarga la app en segundo plano
 function saveTimer(){try{T.end?localStorage.setItem(TKEY,JSON.stringify({end:T.end,total:T.total})):localStorage.removeItem(TKEY)}catch(e){}}
-try{const t=JSON.parse(localStorage.getItem(TKEY));if(t&&t.end&&S.activeId&&Date.now()<t.end+6000){T.end=t.end;T.total=t.total||0;T.done=Date.now()>=t.end}}catch(e){}
+try{const t=JSON.parse(localStorage.getItem(TKEY));if(t&&t.end&&S.activeId&&S.settings.timer&&Date.now()<t.end+6000){T.end=t.end;T.total=t.total||0;T.done=Date.now()>=t.end}}catch(e){}
 function unlockAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
 // iOS: con audioSession 'playback' suena aunque el interruptor de silencio esté activado,
 // pero pausa la música de otras apps; por eso es opcional y se regresa a 'auto' al terminar
@@ -747,7 +749,7 @@ document.addEventListener('click',e=>{
         if(b2&&k>b2.kg&&k>cur){x.pr=true;toast('🏆 ¡Récord personal en '+keyOf(it)+'!')}}
       save();render();
       const rest=+it.rest||(it.mode!=='tiempo'&&it.max<=8?S.settings.restHeavy:S.settings.restLight);
-      if(!it.sets.every(y=>y.d)||s.items.some(o=>!o.skipped&&o.sets.some(y=>!y.d)))startRest(+rest||90);
+      if(S.settings.timer&&(!it.sets.every(y=>y.d)||s.items.some(o=>!o.skipped&&o.sets.some(y=>!y.d))))startRest(+rest||90);
       break}
     case 'addset':{const l=it.sets[it.sets.length-1];it.sets.push({v:l?l.v:'',r:'',s:'',rir:'',d:false,u:it.u,ph:l?(l.r||l.ph||''):''});save();render();break}
     case 'delset':{if(it.sets.length<=1)return;const k=it.sets.map(x=>x.d).lastIndexOf(false);it.sets.splice(k>=0?k:it.sets.length-1,1);save();render();break}
@@ -815,7 +817,8 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.dataset.act==='pkey'){UI.prog=el.value;UI.progU=null;render();return}
-  if(el.dataset.s){S.settings[el.dataset.s]=el.type==='checkbox'?el.checked:(+el.value||0);save();return}
+  if(el.dataset.s){S.settings[el.dataset.s]=el.type==='checkbox'?el.checked:(+el.value||0);save();
+    if(el.dataset.s==='timer'){if(!el.checked){T.end=0;saveTimer();tick()}render()}return}
   const t=UI.edit&&tplById(UI.edit);if(!t)return;
   if(el.dataset.tf){const f=el.dataset.tf;
     if(f==='weekday'){const v=el.value===''?null:+el.value;if(v!=null)S.templates.forEach(o=>{if(o!==t&&o.weekday===v){o.weekday=null;touch(o)}});t.weekday=v}

@@ -1,4 +1,4 @@
-# Mi Gym v1.3 — cómo instalarla
+# Mi Gym v1.4 — cómo instalarla
 
 ## Probar en la PC
 Abre `index.html` con doble clic (Chrome o Edge). Se ve la app, pero así no guarda datos de forma fiable ni se instala. Para usarla de verdad hay que publicarla (paso siguiente).
@@ -16,9 +16,10 @@ Abre `index.html` con doble clic (Chrome o Edge). Se ve la app, pero así no gua
 2. Botón **Compartir** (cuadro con flecha) → **Agregar a inicio** → **Agregar**.
 3. Abre la app **desde el ícono nuevo**, no desde Safari. Safari y la app instalada guardan datos por separado.
 4. La primera vez ábrela con internet. Después funciona sin conexión.
-5. En la app: **Ajustes** → revisa unidad (kg/lb), descansos y si quieres activar RIR o "Sonar aunque el iPhone esté en silencio".
+5. En la app: **Ajustes** → revisa unidad (kg/lb) y si quieres activar RIR.
 
-## Durante el entreno
+## Temporizador de descanso (apagado por defecto)
+Si prefieres que la app cuente el descanso, actívalo en **Ajustes → Temporizador de descanso**. Entonces:
 - Deja la pantalla encendida: si bloqueas el iPhone o cambias de app, el aviso de descanso no suena hasta que vuelvas.
 - El iPhone no vibra desde una app web; al terminar el descanso suena un pitido y la pantalla destella.
 
